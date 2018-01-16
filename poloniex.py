@@ -1,14 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+
+
+import json
+import logging
+from multiprocessing.dummy import Process as Thread
+
 import websocket  # pip install websocket-client
+
 import markets
 
 # from poloniex import Poloniex
-
-from multiprocessing.dummy import Process as Thread
-import json
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,8 @@ class WSSClass(object):
         # if not self.api:
         #     self.api = Poloniex(jsonNums=float)
         self.tick = {}
+        self._values_buy, self._values_sell = [], []
+        self._total_buy, self._total_sell = 0, 0
         #
         # iniTick = self.api.returnTicker()
         # self._ids = {market: iniTick[market]['id'] for market in iniTick}
@@ -32,8 +37,89 @@ class WSSClass(object):
                                           on_error=self.on_error,
                                           on_close=self.on_close)
 
+
+
     def on_message(self, ws, message):
-        # print(message)
+        print(json.loads(message))
+
+        # Parsing string into json array
+        _message_json = json.loads(message)
+
+        # Parsing JSON array into variables
+
+        if _message_json[0] == markets.wss_channels['trollbox']:
+            # trollbox
+            pass
+
+        elif _message_json[0] == markets.wss_channels['ticker']:
+            # handling ticker
+            pass
+
+        elif _message_json[0] == markets.wss_channels['base_coin']:
+            # handling base_coin
+            pass
+
+        elif _message_json[0] == markets.wss_channels['heartbeat']:
+            # handling heartbeat
+            pass
+
+        else:
+            def find(l, elem):
+                for row, i in enumerate(l):
+                    try:
+                        column = i.index(elem)
+                    except ValueError:
+                        continue
+                    return row, column
+                return -1
+
+            _currency_id = _message_json[0]
+            _sequence_number = _message_json[1]
+            print('Messages in received message: ', len(_message_json[2]))
+            for m in _message_json[2]:
+                print(m)
+                _msg_type = m[0] #_message_json[2][0][0]  # i - initial orderbook, o - orderbook (0 - sell, 1 - buy), t - trade (0 - sell, 1 - buy)
+
+                if _msg_type == 'i':
+                    _SQL_add_order_book_record = "INSERT INTO %s (seq, price, amount) VALUES (%s, %s, %s)"
+
+                    # Initial sell order book
+                    for x in _message_json[2][0][1]['orderBook'][0]:
+                        self._values_sell.append(
+                            [markets.markets['byID'][str(_currency_id)].get('currencyPair'),
+                             _sequence_number,
+                             x,
+                             _message_json[2][0][1]['orderBook'][0][x]])
+
+                    # Initial buy order book
+                    for y in _message_json[2][0][1]['orderBook'][1]:
+                        self._values_buy.append(
+                            [markets.markets['byID'][str(_currency_id)].get('currencyPair'),
+                             _sequence_number,
+                             y,
+                             _message_json[2][0][1]['orderBook'][1][y]])
+
+                    print (self._values_sell)
+
+                elif _msg_type == 'o':
+                    # Check sequence inc
+                    # if _message_json[1]
+                    if m[1] == 0: # treat sell order book change
+                        print ("sell orderbook change")
+                        print(find(self._values_sell, m[2]))
+                        print("was:", self._values_sell[find(self._values_sell, m[2])[0]][2], " - ", self._values_sell[find(self._values_sell, m[2])[0]][3])
+                        print ("will be: ", m[2], " - ",m[3])
+                    else: # treat buy order book change
+                        print ("buy ob change")
+
+                elif _msg_type == 't':
+                    # Process trades
+                    pass
+                else:
+                    pass
+
+                #
+
         if 'error' in message:
             return logger.error(message['error'])
 
@@ -76,7 +162,10 @@ class WSSClass(object):
             logger.info("Websocket closed!")
 
     def on_open(self, ws):
-        self._ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
+        # self._ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
+        print('subscribed to 1002')
+        # self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
+        self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_DOGE'}))
 
     @property
     def status(self):
@@ -105,15 +194,17 @@ class WSSClass(object):
         logger.info('Websocket thread stopped/joined')
 
     def __call__(self, market=None):
-         """ returns ticker from mongodb """
-         if market:
-             return self.tick[self._ids[market]]
-         return self.tick
+        """ returns ticker from mongodb """
+        if market:
+            pass
+
+        # return 'USD_BTC_ticker'
+
+        return self.tick
 
 
 if __name__ == "__main__":
     import pprint
-    from time import sleep
 
     logging.basicConfig(level=logging.DEBUG)
     # websocket.enableTrace(True)

@@ -1,10 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-import pprint
 
 
-import json
+wss_channels = {
+    "trollbox":1001,
+    "ticker":1002,
+    "base_coin":1003,
+    "heartbeat":1010
+}
 
 markets =  {
     "byCurrencyPair": {
@@ -5128,8 +5132,3 @@ currencies = {
   }
 }
 
-
-print (markets['byCurrencyPair']['BTC_BCN'])
-print (markets['byID']['122'])
-print(currencies['bySymbol']['BCN'])
-print(currencies['byID']['60'])

@@ -12,5 +12,3 @@ config = {
     # MySQL database name
     "db_name":"tradingdb"
 }
-
-print(config['db_user'])

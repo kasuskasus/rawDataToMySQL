@@ -5132,3 +5132,12 @@ currencies = {
   }
 }
 
+
+def list_all_markets():
+    # for x in markets['byCurrencyPair']:
+    #     print x
+    return list(markets['byCurrencyPair'].keys())
+
+
+if __name__ == '__main__':
+    print(list_all_markets())

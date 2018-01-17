@@ -7,8 +7,10 @@ import config # project config file
 import markets
 import logging
 from sys import stdout
+from time import time
 
 def std_write(n, m):
+    """Writes in one line"""
     stdout.write("\r Element %d" % n + " out of %d" % m)
     stdout.flush()
 
@@ -131,13 +133,53 @@ class MySqlExchangeProcessor():
         _cursor.close()
         return _results
 
-if __name__ == "__main__":
+    def insert_data(self, timestamp=None, seq=None, data_array=None, currency_pair=None, type=None):
+        if not seq and data_array and currency_pair and type:
+            raise RuntimeError
+        else:
+            _table = currency_pair + "_" + type + '_orders'
+            _values_substring = ""
+            ttt = time()
+            for each in data_array:
+                _values_substring = _values_substring + "('" + str(each[0]) + "', '" + str(each[1]) + "', '" + str(each[2]) + "', '" + str(each[3]) + "'),"
+            _sql_insert = "INSERT INTO " + self._database + "."+ _table + " (timestamp, seq, price, amount) VALUES " + _values_substring[:-1]
+
+            print(_sql_insert)
+
+            _cursor_new = self._connection.cursor()
+            _cursor_new.execute(_sql_insert)
+            self._connection.commit()
+            _cursor_new.close()
+            print("Time ", time()-ttt)
+
+    def update_record(self, currency_pair=None, update_values=None, type=None):
+        if not currency_pair and update_values and type:
+            raise RuntimeError
+        else:
+
+            _table = self._database + "." + currency_pair + "_" + type + '_orders'
+            ttt = time()
+            print("Updating: ", update_values, end="")
+            _sql_update = "REPLACE INTO {} (timestamp, seq, price, amount) VALUES ('{}','{}','{}','{}')".format(_table, str(update_values[0]),str(update_values[1]),str(update_values[2]),str(update_values[3]))
+            # print (_sql_update)
+
+            _cursor_update = self._connection.cursor()
+            _cursor_update.execute(_sql_update)
+            self._connection.commit()
+            _cursor_update.close()
+
+            print(" - took " + str(time()-ttt) + " sec")
+
+    # def insert_trade(self, ):
+if __name__=='__main__':
     mysql = MySqlExchangeProcessor(
                                     user=config.config['db_user'],
                                     password=config.config['db_pass'],
                                     host=config.config['db_host'],
                                     database=config.config['db_name']
     )
+
+
 
     mysql.close()
 

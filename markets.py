@@ -5138,6 +5138,13 @@ def list_all_markets():
     #     print x
     return list(markets['byCurrencyPair'].keys())
 
+def get_currency_ticker_by_id(currency_id):
+    return markets['byID'][str(currency_id)]['currencyPair']
+
 
 if __name__ == '__main__':
     print(list_all_markets())
+    n = '27'
+    print(markets['byID'][n]['currencyPair'])
+
+    print(get_currency_ticker_by_id(n))

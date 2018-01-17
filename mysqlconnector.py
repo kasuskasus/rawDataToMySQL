@@ -62,7 +62,12 @@ class MySqlExchangeProcessor():
 
         # Prepare and execute create table statements for all markets
         _sql_tables_create_stmt = []
+        ttt = time()
         for each in markets.list_all_markets():
+            # _sql_tables_create_stmt.append("CREATE TABLE %s_buy_orders (timestamp varchar(255), seq varchar(255), price varchar(255), amount varchar(255), constraint pk primary key (price))" % each)
+            # _sql_tables_create_stmt.append("CREATE TABLE %s_sell_orders (timestamp varchar(255), seq varchar(255), price varchar(255), amount varchar(255), constraint pk primary key (price))" % each)
+            # _sql_tables_create_stmt.append("CREATE TABLE %s_trades (timestamp varchar(255), seq varchar(255), price varchar(255), amount varchar(255), buysell varchar(255), constraint pk primary key (price))" % each)
+
             _sql_tables_create_stmt.append("CREATE TABLE %s_sell_orders LIKE _sell_order_template" % each)
             _sql_tables_create_stmt.append("CREATE TABLE %s_buy_orders LIKE _buy_order_template" % each)
             _sql_tables_create_stmt.append("CREATE TABLE %s_trades LIKE _trade_template" % each)
@@ -79,7 +84,7 @@ class MySqlExchangeProcessor():
             _cursor.close()
         except mysql.connector.Error as e:
             print(e)
-
+        print("Took", time()-ttt, ' secs to initialize')
         # Database exists?
         databases_existing = []
         for x in self.get_databases():

@@ -138,6 +138,20 @@ class MySqlExchangeProcessor():
         _cursor.close()
         return _results
 
+    def get_orderbook_item(self, currency_pair = None, type = None, price = None):
+        if not currency_pair or not price or not type:
+            raise RuntimeError
+        else:
+            _table = currency_pair + "_" + type + '_orders'
+            _sql_get = "SELECT * FROM " + _table + " WHERE (price = '" + price + "')"
+            print(_sql_get)
+            _cursor_get = self._connection.cursor()
+            _cursor_get.execute(_sql_get)
+            _results = _cursor_get.fetchall()
+            _cursor_get.close()
+
+            return _results
+
     def insert_data(self, timestamp=None, seq=None, data_array=None, currency_pair=None, type=None):
         if not seq and data_array and currency_pair and type:
             raise RuntimeError
@@ -158,10 +172,9 @@ class MySqlExchangeProcessor():
             print("Time ", time()-ttt)
 
     def update_record(self, currency_pair=None, update_values=None, type=None):
-        if not currency_pair and update_values and type:
+        if not (currency_pair and update_values and type):
             raise RuntimeError
         else:
-
             _table = self._database + "." + currency_pair + "_" + type + '_orders'
             ttt = time()
             print("Updating: ", update_values, end="")
@@ -175,7 +188,14 @@ class MySqlExchangeProcessor():
 
             print(" - took " + str(time()-ttt) + " sec")
 
-    # def insert_trade(self, ):
+    def insert_trade(self, currency_pair = None, trade_values = None, type = None):
+        if not (currency_pair and trade_values and type):
+            raise RuntimeError
+        else:
+            _table = self._database + "." + currency_pair + "_trades"
+            ttt = time()
+            print("")
+
 if __name__=='__main__':
     mysql = MySqlExchangeProcessor(
                                     user=config.config['db_user'],
@@ -184,7 +204,7 @@ if __name__=='__main__':
                                     database=config.config['db_name']
     )
 
-
+    mysql.get_orderbook_item('BTC_ETH', 'sell', '0.09500000')
 
     mysql.close()
 

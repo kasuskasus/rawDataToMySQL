@@ -81,7 +81,7 @@ class WSSClass(object):
             _sequence_number = _message_json[1]
             print('Messages in received message: ', len(_message_json[2]))
 
-            print(_currency_id, self.orderbook_seq, _sequence_number)
+            print(_currency_id, self.orderbook_seq.get(_currency_id), _sequence_number)
 
             if self.orderbook_seq.get(_currency_id) == None:
                 # This is a new init, everything is ok
@@ -98,79 +98,53 @@ class WSSClass(object):
                 print(m)
                 _msg_type = m[0] #_message_json[2][0][0]  # i - initial orderbook, o - orderbook (0 - sell, 1 - buy), t - trade (0 - sell, 1 - buy)
 
-                # if _msg_type == 'i' or _msg_type == 'o':
-                #
-                #     print(_currency_id, self.orderbook_seq,_sequence_number)
-                #
-                #     if self.orderbook_seq.get(_currency_id) == None:
-                #         # This is a new init, everything is ok
-                #         self.orderbook_seq[_currency_id] = _sequence_number
-                #     else:
-                #         # Something went wrong! Throwing error (TODO - add exception to restart connection!)
-                #         if int(self.orderbook_seq.get(_currency_id)) + 1 != int(_sequence_number):
-                #             raise ValueError
-                #         else:
-                #             self.orderbook_seq[_currency_id] = _sequence_number
-
                 if _msg_type == 'i':
                     _SQL_add_order_book_record = "INSERT INTO %s (seq, price, amount) VALUES (%s, %s, %s)"
 
-
-
                     # Initial sell order book
+
+                    _temp_values_sell, _temp_values_buy = [], []
+
                     for x in _message_json[2][0][1]['orderBook'][0]:
-                        self._values_sell.append(
-                            [str(int(time())),#markets.markets['byID'][str(_currency_id)].get('currencyPair'),
-                             _sequence_number,
-                             x,
-                             _message_json[2][0][1]['orderBook'][0][x]])
+                        _temp_values_sell.append(
+                                                [str(int(time())),
+                                                 _sequence_number,
+                                                 x,
+                                                 _message_json[2][0][1]['orderBook'][0][x]])
 
                     # Inserting into MySQL sell book
                     mysql.insert_data(seq = _message_json[1],
                                       currency_pair=_message_json[2][0][1]['currencyPair'],
-                                      data_array=self._values_sell,
+                                      data_array=_temp_values_sell, #self._values_sell,
                                       type='sell')
 
                     # Initial buy order book
                     for y in _message_json[2][0][1]['orderBook'][1]:
-                        self._values_buy.append(
-                            [str(int(time())), #markets.markets['byID'][str(_currency_id)].get('currencyPair'),
-                             _sequence_number,
-                             y,
-                             _message_json[2][0][1]['orderBook'][1][y]])
+                        _temp_values_buy.append(
+                                                [str(int(time())),
+                                                 _sequence_number,
+                                                 y,
+                                                 _message_json[2][0][1]['orderBook'][1][y]])
 
                     # Inserting into MySQL buy book
                     mysql.insert_data(seq=_message_json[1],
                                       currency_pair=_message_json[2][0][1]['currencyPair'],
-                                      data_array=self._values_buy,
+                                      data_array=_temp_values_buy, #self._values_buy,
                                       type='buy')
 
                 elif _msg_type == 'o':
                     if m[1] == 0: # treat sell order book change
                         print ("sell orderbook change")
-                        _location = find(self._values_sell, m[2])
-                        if _location != -1:
-                            print("was:", self._values_sell[_location[0]][2], " - ", self._values_sell[_location[0]][3])
-                            self._values_sell[_location[0]][0] = str(int(time()))
-                            self._values_sell[_location[0]][1] = _sequence_number
-                            if self._values_sell[_location[0]][2] != m[2]: raise RuntimeError
-                            self._values_sell[_location[0]][3] = m[3]
+
+                        item_get = mysql.get_orderbook_item(currency_pair = markets.get_currency_ticker_by_id(_currency_id),
+                                                            type = 'sell',
+                                                            price = m[2])
+
+                        if len(item_get) == 0:
+                            print("new sell order book item", [m[2], m[3]])
                         else:
-                            print("new sell orderbook value")
-                            self._values_sell.append([str(int(time())),  # markets.markets['byID'][str(_currency_id)].get('currencyPair'),
-                                                     _sequence_number,
-                                                     m[2],
-                                                     m[3]])
+                            print ("was: ", item_get, ", will be: ", [m[2],m[3]])
 
-                        print ("will be: ", m[2], " - ",m[3])
-                        print ("check: ", self._values_sell[_location[0]][2], " - ", self._values_sell[_location[0]][3])
-
-
-                        # Inserting into MySQL buy book
-                        # mysql.insert_data(seq=_message_json[1],
-                        #                   currency_pair=_message_json[2][0][1]['currencyPair'],
-                        #                   data_array=self._values_buy,
-                        #                   type='buy')
 
                         _update_values = [str(int(time())),
                                           _sequence_number,
@@ -183,6 +157,18 @@ class WSSClass(object):
 
 
                     else: # treat buy order book change
+                        print("buy orderbook change")
+
+                        item_get = mysql.get_orderbook_item(
+                                                        currency_pair=markets.get_currency_ticker_by_id(_currency_id),
+                                                        type='buy',
+                                                        price=m[2])
+
+                        if len(item_get) == 0:
+                            print("new buy order book item: ", [m[2], m[3]])
+                        else:
+                            print("was: ", item_get, ", will be: ", [m[2], m[3]])
+
                         print ("buy ob change")
                         if find(self._values_buy, m[2]) != -1:
                             print("was:", self._values_buy[find(self._values_buy, m[2])[0]][2], " - ", self._values_buy[find(self._values_buy, m[2])[0]][3])

@@ -152,6 +152,18 @@ class MySqlExchangeProcessor():
 
             return _results
 
+    def trunc_orderbook(self, currency_pair):
+        _trunc_sql_1 = "TRUNCATE TABLE " + self._database + "." + currency_pair + "_sell_orders"
+        _trunc_sql_2 = "TRUNCATE TABLE " + self._database + "." + currency_pair + "_buy_orders"
+        _trunc_sql_3 = "TRUNCATE TABLE " + self._database + "." + currency_pair + "_trades"
+
+        _trunc_cursor = self._connection.cursor()
+        _trunc_cursor.execute(_trunc_sql_1)
+        _trunc_cursor.execute(_trunc_sql_2)
+        _trunc_cursor.execute(_trunc_sql_3)
+        _trunc_cursor.close()
+
+
     def insert_data(self, timestamp=None, seq=None, data_array=None, currency_pair=None, type=None):
         if not seq and data_array and currency_pair and type:
             raise RuntimeError
@@ -163,7 +175,7 @@ class MySqlExchangeProcessor():
                 _values_substring = _values_substring + "('" + str(each[0]) + "', '" + str(each[1]) + "', '" + str(each[2]) + "', '" + str(each[3]) + "'),"
             _sql_insert = "INSERT INTO " + self._database + "."+ _table + " (timestamp, seq, price, amount) VALUES " + _values_substring[:-1]
 
-            print(_sql_insert)
+            self.trunc_orderbook(currency_pair)
 
             _cursor_new = self._connection.cursor()
             _cursor_new.execute(_sql_insert)

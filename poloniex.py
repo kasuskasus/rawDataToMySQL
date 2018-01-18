@@ -233,19 +233,17 @@ class WSSClass(object):
                 self.stop()
             except Exception as e:
                 logger.exception(e)
-            try:
-                self.start()
-            except Exception as e:
-                logger.exception(e)
-                self.stop()
         else:
             logger.info("Websocket closed!")
 
     def on_open(self, ws):
         # self._ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
         print('subscribed to 1002')
-        self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
-        self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_DOGE'}))
+        # self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
+        # self._ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_DOGE'}))
+
+        for x in markets.markets['byCurrencyPair']:
+            self._ws.send(json.dumps({'command': 'subscribe', 'channel': str(x)}))
 
     @property
     def status(self):

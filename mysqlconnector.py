@@ -175,13 +175,13 @@ class MySqlExchangeProcessor():
                 _values_substring = _values_substring + "('" + str(each[0]) + "', '" + str(each[1]) + "', '" + str(each[2]) + "', '" + str(each[3]) + "'),"
             _sql_insert = "INSERT INTO " + self._database + "."+ _table + " (timestamp, seq, price, amount) VALUES " + _values_substring[:-1]
 
-            self.trunc_orderbook(currency_pair)
+            # print(_sql_insert)
 
             _cursor_new = self._connection.cursor()
             _cursor_new.execute(_sql_insert)
-            self._connection.commit()
+            # self._connection.commit()
             _cursor_new.close()
-            print("Time ", time()-ttt)
+            print("Insert complete. Time: ", time()-ttt, ",records: ", str(len(data_array)), ", currency: ", currency_pair, ", order book: ", type)
 
     def update_record(self, currency_pair=None, update_values=None, type=None):
         if not (currency_pair and update_values and type):
@@ -189,7 +189,7 @@ class MySqlExchangeProcessor():
         else:
             _table = self._database + "." + currency_pair + "_" + type + '_orders'
             ttt = time()
-            print("Updating: ", update_values, end="")
+            print("Updating ", _table, ": ", update_values, end="")
             _sql_update = "REPLACE INTO {} (timestamp, seq, price, amount) VALUES ('{}','{}','{}','{}')".format(_table, str(update_values[0]),str(update_values[1]),str(update_values[2]),str(update_values[3]))
             # print (_sql_update)
 
@@ -206,7 +206,18 @@ class MySqlExchangeProcessor():
         else:
             _table = self._database + "." + currency_pair + "_trades"
             ttt = time()
-            print("")
+            _sql_trade_ins = "INSERT INTO {} (timestamp, seq, price, amount, buysell) VALUES ('{}','{}','{}','{}','{}')".format(_table, str(trade_values[0]), str(trade_values[1]), str(trade_values[2]), str(trade_values[3]), type)
+            # print(_sql_trade_ins)
+
+            print("Inserting trade: ", currency_pair, type, trade_values, end="")
+            _cursor_trade = self._connection.cursor()
+            _cursor_trade.execute(_sql_trade_ins)
+            self._connection.commit()
+            _cursor_trade.close()
+
+            print(" - took " + str(time() - ttt) + " sec")
+
+
 
 if __name__=='__main__':
     mysql = MySqlExchangeProcessor(

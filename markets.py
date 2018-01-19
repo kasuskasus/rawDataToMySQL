@@ -1,7 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-
+import urllib.request
+import json
+import time
+from threading import Event, Thread
 
 wss_channels = {
     "trollbox":1001,
@@ -156,14 +159,15 @@ markets =  {
         "quote": "OMNI",
         "currencyPair": "BTC_OMNI"
       },
-      "BTC_NAUT": {
-        "id": 60,
-        "baseID": 28,
-        "quoteID": 150,
-        "base": "BTC",
-        "quote": "NAUT",
-        "currencyPair": "BTC_NAUT"
-      },
+      # DELISTED FROM POLONIEX
+      # "BTC_NAUT": {
+      #   "id": 60,
+      #   "baseID": 28,
+      #   "quoteID": 150,
+      #   "base": "BTC",
+      #   "quote": "NAUT",
+      #   "currencyPair": "BTC_NAUT"
+      # },
       "BTC_NAV": {
         "id": 61,
         "baseID": 28,
@@ -188,14 +192,15 @@ markets =  {
         "quote": "NMC",
         "currencyPair": "BTC_NMC"
       },
-      "BTC_NOTE": {
-        "id": 66,
-        "baseID": 28,
-        "quoteID": 157,
-        "base": "BTC",
-        "quote": "NOTE",
-        "currencyPair": "BTC_NOTE"
-      },
+      # DELISTED FROM POLONIEX
+      # "BTC_NOTE": {
+      #   "id": 66,
+      #   "baseID": 28,
+      #   "quoteID": 157,
+      #   "base": "BTC",
+      #   "quote": "NOTE",
+      #   "currencyPair": "BTC_NOTE"
+      # },
       "BTC_NXT": {
         "id": 69,
         "baseID": 28,
@@ -236,14 +241,15 @@ markets =  {
         "quote": "RIC",
         "currencyPair": "BTC_RIC"
       },
-      "BTC_SJCX": {
-        "id": 86,
-        "baseID": 28,
-        "quoteID": 189,
-        "base": "BTC",
-        "quote": "SJCX",
-        "currencyPair": "BTC_SJCX"
-      },
+      # DELISTED FROM POLONIEX
+      # BTC_SJCX": {
+      #   "id": 86,
+      #   "baseID": 28,
+      #   "quoteID": 189,
+      #   "base": "BTC",
+      #   "quote": "SJCX",
+      #   "currencyPair": "BTC_SJCX"
+      # },
       "BTC_STR": {
         "id": 89,
         "baseID": 28,
@@ -819,9 +825,25 @@ markets =  {
         "base": "ETH",
         "quote": "GAS",
         "currencyPair": "ETH_GAS"
+      },
+      "BTC_STORJ": {
+        "id": 200,
+        "baseID": 28,
+        "quoteID": 297,
+        "base": "BTC",
+        "quote": "STORJ",
+        "currencyPair": "BTC_STORJ"
       }
     },
     "byID": {
+      "200": {
+        "id": 200,
+        "baseID": 28,
+        "quoteID": 297,
+        "base": "BTC",
+        "quote": "STORJ",
+        "currencyPair": "BTC_STORJ"
+      },
       "7": {
         "id": 7,
         "baseID": 28,
@@ -982,14 +1004,15 @@ markets =  {
         "quote": "OMNI",
         "currencyPair": "BTC_OMNI"
       },
-      "60": {
-        "id": 60,
-        "baseID": 28,
-        "quoteID": 150,
-        "base": "BTC",
-        "quote": "NAUT",
-        "currencyPair": "BTC_NAUT"
-      },
+      # DELISTED FROM POLONIEX
+      # "60": {
+      #   "id": 60,
+      #   "baseID": 28,
+      #   "quoteID": 150,
+      #   "base": "BTC",
+      #   "quote": "NAUT",
+      #   "currencyPair": "BTC_NAUT"
+      # },
       "61": {
         "id": 61,
         "baseID": 28,
@@ -1014,14 +1037,15 @@ markets =  {
         "quote": "NMC",
         "currencyPair": "BTC_NMC"
       },
-      "66": {
-        "id": 66,
-        "baseID": 28,
-        "quoteID": 157,
-        "base": "BTC",
-        "quote": "NOTE",
-        "currencyPair": "BTC_NOTE"
-      },
+      # DELISTED FROM POLONIEX
+      # "66": {
+      #   "id": 66,
+      #   "baseID": 28,
+      #   "quoteID": 157,
+      #   "base": "BTC",
+      #   "quote": "NOTE",
+      #   "currencyPair": "BTC_NOTE"
+      # },
       "69": {
         "id": 69,
         "baseID": 28,
@@ -2529,12 +2553,13 @@ currencies = {
       "name": "NAS",
       "canLend": 0
     },
-    "NAUT": {
-      "id": 150,
-      "symbol": "NAUT",
-      "name": "Nautiluscoin",
-      "canLend": 0
-    },
+    # DELISTED FROM POLONIEX
+    # # "NAUT": {
+    #   "id": 150,
+    #   "symbol": "NAUT",
+    #   "name": "Nautiluscoin",
+    #   "canLend": 0
+    # },
     "NAV": {
       "id": 151,
       "symbol": "NAV",
@@ -2763,12 +2788,13 @@ currencies = {
       "name": "Silkcoin",
       "canLend": 0
     },
-    "SJCX": {
-      "id": 189,
-      "symbol": "SJCX",
-      "name": "Storjcoin X",
-      "canLend": 0
-    },
+    # DELISTED FROM POLONIEX
+    # "SJCX": {
+    #   "id": 189,
+    #   "symbol": "SJCX",
+    #   "name": "Storjcoin X",
+    #   "canLend": 0
+    # },
     "SLR": {
       "id": 190,
       "symbol": "SLR",
@@ -5133,6 +5159,7 @@ currencies = {
 }
 
 
+
 def list_all_markets():
     # for x in markets['byCurrencyPair']:
     #     print x
@@ -5142,9 +5169,30 @@ def get_currency_ticker_by_id(currency_id):
     return markets['byID'][str(currency_id)]['currencyPair']
 
 
-if __name__ == '__main__':
-    print(list_all_markets())
-    n = '27'
-    print(markets['byID'][n]['currencyPair'])
+def get_poloniex_markets():
+    """Returns list of tuples, each tuple is (currencyPair, pairID)"""
 
-    print(get_currency_ticker_by_id(n))
+    ret = urllib.request.urlopen("https://poloniex.com/public?command=returnTicker")
+    _t = json.loads(ret.read())
+    return [(each, _t.get(each).get('id')) for each in _t]
+
+
+
+if __name__ == '__main__':
+    # print(list_all_markets())
+    # n = '27'
+    # print(markets['byID'][n]['currencyPair'])
+    #
+    # print(get_currency_ticker_by_id(n))
+    #
+    # all_markets = get_poloniex_markets()
+    # print (all_markets)
+    # print(len(all_markets.keys()))
+    # print(len(all_markets))
+
+    p = get_poloniex_markets()
+
+    print(p)
+    # start timer
+       # stop timer
+    # timer.stop()
